@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual env
+.venv/
+
+# Database
+*.db
+
+# Environment
+.env
+
+# Output
+output/*
+
+# IDE
+.vscode/
+.idea/
