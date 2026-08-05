@@ -1,16 +1,16 @@
 from fastapi import FastAPI
-from app.api.health import router as health_router
-from app.api.tasks import router as task_router
-from app.api.tools import router as tools_router
+from app.api.agent_trace_api import router as agent_trace_router
+from app.api.task_manage_api import router as task_manage_router
+from app.api.task_state_api import router as task_state_router
 from app.db.session import init_db
 app=FastAPI(
-    title="Agent Starter",
-    description="A minimal AI Agent backend project",
+    title="Agent Restruct",
+    description="A minimal AI Agent backend project by restructing Agent Start",
     version="0.1.0"
 )
 
 init_db()
 
-app.include_router(health_router)
-app.include_router(task_router)
-app.include_router(tools_router)
+app.include_router(agent_trace_router)
+app.include_router(task_manage_router)
+app.include_router(task_state_router)

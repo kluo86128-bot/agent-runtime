@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker,declarative_base
-
-DATABASE_URL="sqlite:///./agent-starter.db"
+from app.config.config import settings
+DATABASE_URL=settings.DATABASE_URL
 
 engine=create_engine(
     DATABASE_URL,
@@ -18,7 +18,6 @@ SessionLocal=sessionmaker(
 Base=declarative_base()
 
 def init_db()->None:
-    from app.db import models
     Base.metadata.create_all(bind=engine)
     
 def get_db_session():

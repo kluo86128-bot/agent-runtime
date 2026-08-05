@@ -1,13 +1,17 @@
 from app.tools.tool_registry import tool_registry
-from app.services.trace_service import trace_service
-from app.services.state_service import state_service
+from app.trace.agent_trace_manage_service import agent_trace_manage_service
+from app.redis_state.task_state_manage import agent_state_manage_service
 import traceback
 import time
+from app.log.logger import logger
 class SimpleAgent:
     def run(self,task_id:str,instruction:str)->str:
-        state_service.update_state(
+        logger.info(
+            f"agent层\ntask_state:running\ntask_id:{task_id}\ninstruction:{instruction}"
+        )
+        agent_state_manage_service.update_state(
             task_id,
-            status="running",
+            state="running",
             step="agent_started",
             progress=0,
         )
@@ -16,28 +20,32 @@ class SimpleAgent:
         write_tool=tool_registry.get_tool("write_file")
         
         try:
-            state_service.update_state(
+            logger.info(
+                f"Tool Calling:read_file"
+            )
+            agent_state_manage_service.update_state(
                 task_id,
-                status="running",
+                state="running",
                 step="read_file",
                 progress=20
             )
             content=read_tool.run(path="sample_data/note.txt")
-            trace_service.add_trace(
+            agent_trace_manage_service.add_trace(
                 task_id=task_id,
                 step_index=1,
                 action="read_file",
                 input={"path":"sample_data/note.txt"},
                 output={"content_preview":content[:100]},
             )
-            state_service.update_state(
+            agent_state_manage_service.update_state(
                 task_id,
-                status="running",
+                state="running",
                 step="summarize",
                 progress=60,
             )
+            logger.info(f"Tool Calling:summarize")
             summary=self._summary(content)
-            trace_service.add_trace(
+            agent_trace_manage_service.add_trace(
                 task_id=task_id,
                 step_index=2,
                 action="summarize",
@@ -45,29 +53,29 @@ class SimpleAgent:
                 output={"summary":summary}
             )
             output_path="output/summary.md"
-            state_service.update_state(
+            agent_state_manage_service.update_state(
                 task_id,
-                status="running",
+                state="running",
                 step="write_file",
                 progress=80,
             )
+            logger.info(f"Tool Calling:writer_file")
             write_result=write_tool.run(path=output_path,content=summary)
-            trace_service.add_trace(task_id=task_id,
+            agent_trace_manage_service.add_trace(task_id=task_id,
                                     step_index=3,
                                     action="write_file",
                                     input={"path":output_path},
                                     output={"summary":summary})
-            state_service.update_state(
+            agent_state_manage_service.update_state(
                 task_id,
-                status="completed",
+                state="completed",
                 step="finnished",
                 progress=100
             )
             return write_result
             
         except Exception as e:
-            print(2)
-            trace_service.add_trace(
+            agent_trace_manage_service.add_trace(
                 task_id=task_id,
                 step_index=999,
                 action="agent_error",
