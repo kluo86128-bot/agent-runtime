@@ -7,6 +7,6 @@ router=APIRouter(prefix="/agent_trace",tags=["agent_trace"])
 def get_task_trace(task_id:str):
     task=task_service.get_task(task_id)
     if task is None:
-        raise HTTPException(state_code=404,detail="Task not found")
+        raise HTTPException(status_code=404,detail="Task not found")
     
     return agent_trace_manage_service.get_trace(task_id)

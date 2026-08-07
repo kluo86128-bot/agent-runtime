@@ -8,7 +8,7 @@ def get_task_schema(task_id:str):
     
     if state is None:
         raise HTTPException(
-            state_code=404,
+            status_code=404,
             detail="state not found"
         )
         

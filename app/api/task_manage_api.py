@@ -22,7 +22,7 @@ def get_task(task_id:str):
         logger.info(
             f"task_id={task_id}:Task not found"
         )
-        raise HTTPException(state_code=404,detail="Task not found")
+        raise HTTPException(status_code=404,detail="Task not found")
     
     return task
 

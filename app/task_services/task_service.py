@@ -4,6 +4,8 @@ from app.db.tables import TaskORM
 from app.task_shcema.task_schema import TaskCreateRequest,TaskResponse,TaskState   
 from app.db.session import SessionLocal
 import traceback
+import time
+from app.db.db_conn_status import log_pool_status
 from app.log.logger import logger
 from app.redis_state.task_state_manage import agent_state_manage_service
 from app.redis_queue.task_queue import task_queue
@@ -17,19 +19,19 @@ class TaskService:
         logger.info(
             f"task_service层\n任务创建成功，task_id={task_id}"
         )
-        db=SessionLocal()
-        
         try:
-            db=SessionLocal()
-            task=TaskORM(
-                id=task_id,
-                instruction=request.instruction,
-                state=TaskState.runing.value,
-                result=None,
-                created_at=datetime.utcnow()
-            )
-            db.add(task)
-            db.commit()
+            with SessionLocal() as db:
+            
+                task=TaskORM(
+                    id=task_id,
+                    instruction=request.instruction,
+                    state=TaskState.pending.value,
+                    result=None,
+                    created_at=datetime.utcnow()
+                )
+                db.add(task)
+                db.commit()
+            
             try:
                 logger.info(
                     f"任务进入等待队列:task_id={task_id}"
@@ -49,7 +51,7 @@ class TaskService:
                     step="queued",
                     progress=0
                 )
-
+        
                 return self._to_response(task)
 
 
@@ -59,12 +61,12 @@ class TaskService:
             )
                 task.state=TaskState.failed.value
                 task.result=traceback.format_exc()    
-                
-            db.commit()
-            db.refresh(task)
+            with SessionLocal() as db:
+                db.commit()
+                db.refresh(task)
+            
             return self._to_response(task)   
         except:
-            db.close()
             logger.exception(
                 f"create_task失败。traceback:{traceback.format_exc()}"
             )
@@ -87,13 +89,15 @@ class TaskService:
         )
     
     def get_task(self,task_id:str)->TaskResponse|None:
-        db=SessionLocal()
-        try:
-            task=db.query(TaskORM).filter(TaskORM.id==task_id).first()
-            if not task:
-                return None
-            return self._to_response(task)
-        except:
-            db.close()
+        with SessionLocal() as db:
+            try:
+                task=db.query(TaskORM).filter(TaskORM.id==task_id).first()
+                if not task:
+                    return None
+                return self._to_response(task)
+            except:
+                logger.exception(
+                    f"get_task\n数据库查询错误"
+                )
 task_service=TaskService()
         
