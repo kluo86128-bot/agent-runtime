@@ -59,11 +59,12 @@ class TaskService:
                 logger.exception(
                 f"create_task失败。traceback:{traceback.format_exc()}"
             )
-                task.state=TaskState.failed.value
-                task.result=traceback.format_exc()    
+    
             with SessionLocal() as db:
+                task=db.query(TaskORM).filter(TaskORM.id==task_id).first()
+                task.state=TaskState.failed.value
+                task.result=traceback.format_exc()
                 db.commit()
-                db.refresh(task)
             
             return self._to_response(task)   
         except:

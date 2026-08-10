@@ -1,11 +1,12 @@
 from app.tools.tool_registry import tool_registry
+from typing import Any
 from app.trace.agent_trace_manage_service import agent_trace_manage_service
 from app.redis_state.task_state_manage import agent_state_manage_service
 import traceback
 import time
 from app.log.logger import logger
 class SimpleAgent:
-    def run(self,task_id:str,instruction:str)->str:
+    def run(self,task_id:str,instruction:str)->Any:
         logger.info(
             f"agent层\ntask_state:running\ntask_id:{task_id}\ninstruction:{instruction}"
         )
@@ -29,7 +30,9 @@ class SimpleAgent:
                 step="read_file",
                 progress=20
             )
-            content=read_tool.run(path="sample_data/note.txt")
+            result=read_tool.execute(path="sample_data/note.txt")
+            result=result.model_dump()
+            content=str(result.get("result"))
             agent_trace_manage_service.add_trace(
                 task_id=task_id,
                 step_index=1,
@@ -60,7 +63,7 @@ class SimpleAgent:
                 progress=80,
             )
             logger.info(f"Tool Calling:writer_file")
-            write_result=write_tool.run(path=output_path,content=summary)
+            write_result=write_tool.execute(path=output_path,content=summary)
             agent_trace_manage_service.add_trace(task_id=task_id,
                                     step_index=3,
                                     action="write_file",

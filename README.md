@@ -172,12 +172,11 @@ pytest
 - 异步任务队列
 - 实时状态管理
 - SQLite 持久化
-- Tool Registry
+- Tool System
 - Trace 和日志系统
 
 ## 10. 未来计划
 
-- [ ] 标准化 Tool Schema
 - [ ] LLM Service
 - [ ] Function Calling
 - [ ] Agent Loop

@@ -8,6 +8,7 @@ DATABASE_URL=settings.DATABASE_URL
 engine=create_engine(
     DATABASE_URL,
     connect_args={"check_same_thread":False}
+    
 )
 
 @event.listens_for(engine,"checkout")
@@ -27,7 +28,8 @@ def on_checkin(dbapi_connection,connection_record):
 SessionLocal=sessionmaker(
     autocommit=False,
     autoflush=False,
-    bind=engine
+    bind=engine,
+    expire_on_commit=False
 )
 
 Base=declarative_base()
