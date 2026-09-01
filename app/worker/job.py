@@ -2,11 +2,13 @@
 import traceback
 import time
 from app.agents.simple_agent import simple_agent
+from app.agents.function_call_agent import function_call_agent
 from app.db.tables import TaskORM
 from app.db.session import SessionLocal
 from app.task_shcema.task_schema import TaskState
 from app.redis_state.task_state_manage import agent_state_manage_service
 from app.log.logger import logger
+
 def execute_agent_task(task_id:str,instruction:str)->None:
 
     try:
@@ -32,7 +34,7 @@ def execute_agent_task(task_id:str,instruction:str)->None:
             progress=0
         )
 
-        result=simple_agent.run(
+        result=function_call_agent.run(
             task_id=task_id,
             instruction=instruction
         )

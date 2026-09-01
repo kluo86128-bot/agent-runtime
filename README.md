@@ -31,13 +31,13 @@
                               Agent Job
                                   |
                                   v
-                            Simple Agent
+                                Agent
                              /         \
                             v           v
-                       Tool System   Trace System
-                                        |
-                                        v
-                                     SQLite
+                       LLM Service   Trace System
+                            |                |
+                            v                v
+                       Tool System         SQLite
 ```
 
 ## 4. 项目结构
@@ -49,6 +49,7 @@ app/
 ├── config/         # 配置管理
 ├── db/             # SQLite 连接和 ORM 表
 ├── log/            # 系统日志
+├── llm/            # 大模型api管理
 ├── redisbase/      # Redis 连接
 ├── redisqueue/     # RQ 队列
 ├── redisstate/     # 实时任务状态
@@ -164,7 +165,7 @@ pytest
 
 ## 9. 当前版本
 
-### v1.1.0
+### v1.3.1
 
 已完成：
 
@@ -174,10 +175,10 @@ pytest
 - SQLite 持久化
 - Tool System
 - Trace 和日志系统
+- LLM Service
 
 ## 10. 未来计划
 
-- [ ] LLM Service
 - [ ] Function Calling
 - [ ] Agent Loop
 - [ ] ReAct

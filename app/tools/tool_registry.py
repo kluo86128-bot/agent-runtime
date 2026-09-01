@@ -28,6 +28,41 @@ class ToolRegistry:
             for tool in self.__tools.values()
         ]
         
+    def get_openai_tool_shcemas(self)->list[dict]:
+        tools=[]
+        
+        for tool in self.__tools.values():
+            properties={}
+            required=[]
+            
+            for param_name,param_schema in tool.parameters.items():
+                properties[param_name]={
+                    "type":param_schema.type,
+                    "description":param_schema.description
+                }
+                
+                if param_schema.required:
+                    required.append(param_name)
+                
+            tool_schema={
+                "type":"function",
+                "function":{
+                    "name":tool.name,
+                    "description":tool.description,
+                    "parameters":{
+                        "type":"object",
+                        "properties":properties,
+                        "required":required
+                    }
+                }
+            }
+            tools.append(tool_schema)
+                
+            
+        return tools
+            
+        
+        
 tool_registry=ToolRegistry()
 tool_registry.register(ReadFileTool())
 tool_registry.register(WriteFileTool())

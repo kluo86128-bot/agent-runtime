@@ -50,6 +50,10 @@ Agent Runtime
 
 ↓
 
+LLM Service
+
+↓
+
 Tool System
 
 ↓
@@ -65,9 +69,10 @@ Trace / Logging
 | SQLite        | 持久化任务和执行数据 |
 | Redis Queue   | 异步任务调度         |
 | Redis State   | 保存实时运行状态     |
-| Redis Base   | 初始化redis连接     |
+| Redis Base    | 初始化redis连接      |
 | Worker        | 后台执行任务         |
 | Agent Runtime | Agent流程控制        |
+| LLM Service   | 管理大模型 API        |
 | Tool System   | 提供外部能力         |
 | Config        | 管理系统配置         |
 | Logging       | 系统日志记录         |
