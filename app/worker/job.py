@@ -8,7 +8,10 @@ from app.db.session import SessionLocal
 from app.task_shcema.task_schema import TaskState
 from app.redis_state.task_state_manage import agent_state_manage_service
 from app.log.logger import logger
-
+import json
+from app.llm.config import get_required_env
+from dotenv import load_dotenv
+load_dotenv()
 def execute_agent_task(task_id:str,instruction:str)->None:
 
     try:
@@ -36,10 +39,17 @@ def execute_agent_task(task_id:str,instruction:str)->None:
 
         result=function_call_agent.run(
             task_id=task_id,
+            max_steps=int(get_required_env("MAX_STEPS")),
             instruction=instruction
         )
         with SessionLocal() as db:
+            task=(db.query(TaskORM).
+                  filter(TaskORM.id==task_id)
+                  .first())
+            if task is None:
+                raise ValueError(f"Task not found:{task_id}")
             task.state=TaskState.completed.value
+            result=json.dumps(result,ensure_ascii=False)
             task.result=result
             db.commit()
         

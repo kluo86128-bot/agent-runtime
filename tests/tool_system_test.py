@@ -1,5 +1,5 @@
 import json
-
+import pytest
 from app.tools.tool_registry import ToolRegistry
 from app.tools.file_tools import (
     ReadFileTool,
@@ -72,16 +72,8 @@ def test_get_missing_tool():
 
     registry = build_registry()
 
-    result = registry.get_tool(
-        "not_exist"
-    )
-
-    print(result)
-
-    assert isinstance(result, ValueError)
-
-    assert "Tool not found:not_exist" in str(result)
-
+    with pytest.raises(ValueError,match="Tool not found:not_exist"):
+        registry.get_tool("not_exist")
     print("Get Missing Tool PASS")
 
 

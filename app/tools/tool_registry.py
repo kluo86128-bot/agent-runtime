@@ -10,7 +10,7 @@ class ToolRegistry:
         
     def get_tool(self,name:str)->BaseTool:
         if name not in self.__tools:
-            return ValueError(f"Tool not found:{name}")
+            raise ValueError(f"Tool not found:{name}")
         return self.__tools[name]
     
     def get_tool_schema(self)->list[dict]:

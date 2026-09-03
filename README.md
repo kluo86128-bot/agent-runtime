@@ -176,11 +176,11 @@ pytest
 - Tool System
 - Trace 和日志系统
 - LLM Service
+- Function Calling
+- Agent Loop
 
 ## 10. 未来计划
 
-- [ ] Function Calling
-- [ ] Agent Loop
 - [ ] ReAct
 - [ ] Memory
 - [ ] LangGraph 工作流
