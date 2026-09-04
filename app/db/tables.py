@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column,DateTime,Integer,String,Text
+from sqlalchemy import Column,DateTime,Integer,String,Text,JSON
 from app.db.session import Base
 
 class TaskORM(Base):
@@ -16,11 +16,11 @@ class TraceORM(Base):
     
     id=Column(String,primary_key=True,index=True)
     task_id=Column(String,index=True,nullable=True)
-    step_index=Column(Integer,nullable=False)
-    action=Column(String,nullable=False)
-    input=Column(Text,nullable=False)
-    output=Column(Text,nullable=False)
-    error_type=Column(String,nullable=True)
-    error_message=Column(String,nullable=True)
+    model_step=Column(Integer,nullable=True)
+    llm_request=Column(JSON,nullable=True)
+    llm_response=Column(String,nullable=True)
+    tool_call=Column(JSON,nullable=True)
+    tool_result=Column(JSON,nullable=True)
+    final_answer=Column(String,nullable=True)
     error_trace=Column(String,nullable=True)
     created_at=Column(DateTime,default=datetime.utcnow)

@@ -6,6 +6,7 @@ from pydantic import BaseModel,Field
 class TaskState(str,Enum):
     pending="pending"
     runing="runing"
+    stopped="stopped"
     completed="completed"
     failed="failed"
     

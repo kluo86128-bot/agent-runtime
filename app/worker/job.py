@@ -5,7 +5,7 @@ from app.agents.simple_agent import simple_agent
 from app.agents.function_call_agent import function_call_agent
 from app.db.tables import TaskORM
 from app.db.session import SessionLocal
-from app.task_shcema.task_schema import TaskState
+from app.task_schema.task_schema import TaskState
 from app.redis_state.task_state_manage import agent_state_manage_service
 from app.log.logger import logger
 import json
@@ -48,14 +48,13 @@ def execute_agent_task(task_id:str,instruction:str)->None:
                   .first())
             if task is None:
                 raise ValueError(f"Task not found:{task_id}")
-            task.state=TaskState.completed.value
-            result=json.dumps(result,ensure_ascii=False)
-            task.result=result
+            task.state=result["state"]
+            task.result=json.dumps(result,ensure_ascii=False)
             db.commit()
         
         agent_state_manage_service.update_state(
             task_id=task_id,
-            state=TaskState.completed.value,
+            state=result["state"],
             step="finished",
             progress=100
         )

@@ -1,5 +1,5 @@
 from fastapi import APIRouter,HTTPException
-from app.task_shcema.task_schema import TaskCreateRequest,TaskResponse
+from app.task_schema.task_schema import TaskCreateRequest,TaskResponse
 from app.task_services.task_service import task_service
 from app.log.logger import logger
 router=APIRouter(prefix="/tasks",tags=["tasks"])

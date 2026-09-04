@@ -28,7 +28,7 @@ class ToolRegistry:
             for tool in self.__tools.values()
         ]
         
-    def get_openai_tool_shcemas(self)->list[dict]:
+    def get_openai_tool_schemas(self)->list[dict]:
         tools=[]
         
         for tool in self.__tools.values():
