@@ -6,8 +6,9 @@ from app.log.logger import logger
 import traceback
 from app.trace.agent_trace_manage_service import agent_trace_manage_service
 from app.task_schema.task_schema import TaskState
-    
-
+from app.redis_state.task_state_manage import agent_state_manage_service
+from app.task_schema.task_schema import AgentStep
+import time
 class FunctionCallAgent:
     def __init__(self):
         self.llm_service=llm_service
@@ -38,6 +39,14 @@ class FunctionCallAgent:
         for step in range(1,max_steps+1):
             try:
             
+                time.sleep(5)
+                agent_state_manage_service.update_state(
+                    task_id=task_id,
+                    state=TaskState.runing.value,
+                    step=AgentStep.model_request.value,
+                    model_step=step,
+                    max_steps=max_steps,
+                )
                 response=self.llm_service.chat(
                     messages=messages,
                     tools=tool_schemas,
@@ -65,6 +74,7 @@ class FunctionCallAgent:
                     )
                     return{
                         "type":"answer",
+                        "steps":step,
                         "state":TaskState.completed.value,
                         "content":message.content
                     }
@@ -80,6 +90,7 @@ class FunctionCallAgent:
                         for call in message.tool_calls
                     ]
                 }
+                time.sleep(5)                
                 if len(message.tool_calls)>1:
                     agent_trace_manage_service.add_trace(
                     task_id=task_id,
@@ -94,7 +105,16 @@ class FunctionCallAgent:
                         "state":TaskState.stopped.value,
                         "reason":"每轮只支持一个工具调用",
                         "steps":step,
-                    }     
+                    }  
+                    
+                agent_state_manage_service.update_state(
+                    task_id=task_id,
+                    state=TaskState.runing.value,
+                    step=AgentStep.tool_calling.value,
+                    tool_name=tool_call_message,
+                    model_step=step,
+                    max_steps=max_steps,
+                )                   
                 tool_call=message.tool_calls[0]
                 tool_name=tool_call.function.name
                 arguments=json.loads(
@@ -106,6 +126,14 @@ class FunctionCallAgent:
                     "arguments:",json.dumps(arguments,indent=2,ensure_ascii=False)
                 )
                 tool=self.tool_registry.get_tool(tool_name)
+                time.sleep(5)                
+                agent_state_manage_service.update_state(
+                    task_id=task_id,
+                    state=TaskState.runing.value,
+                    step=AgentStep.tool_execute.value,
+                    tool_name=tool_call_message,
+                    model_step=step,
+                    max_steps=max_steps,                )                
                 tool_result=tool.execute(**arguments)
                 if tool_result.success==False:
                     agent_trace_manage_service.add_trace(
@@ -127,7 +155,7 @@ class FunctionCallAgent:
                 })
 
 
-                
+                time.sleep(5)
                 if step == max_steps:
                     agent_trace_manage_service.add_trace(
                         task_id=task_id,
@@ -138,6 +166,7 @@ class FunctionCallAgent:
                         tool_result=tool_result.model_dump(),
                         error_trace="模型轮数已达上限"
                     )
+
                     logger.info(f"模型轮数已达上限")
                     return {
                         "state": TaskState.stopped.value,
@@ -154,6 +183,7 @@ class FunctionCallAgent:
                     tool_call=tool_call_message,
                     tool_result=tool_result.model_dump(),
                 )
+                
             except Exception as e:
                 agent_trace_manage_service.add_trace(
                     task_id=task_id,

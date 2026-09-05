@@ -12,14 +12,20 @@ class AgentStateManageService:
     def update_state(
         self,
         task_id:str,
-        state:str,
+        state:str|None=None,
         step:str|None=None,
-        progress:int|None=None,
+        tool_name:dict[str,Any]|None=None,
+        model_step:int|None=None,
+        max_steps:int|None=None,
+        reason:str|None=None
     ):
         state={
             "state":state,
             "step":step,
-            "progress":progress,
+            "tool_name":tool_name,
+            "model_step":model_step,
+            "max_steps":max_steps,
+            "reason":reason
         }
         redis_client.set(
             self._key(task_id),

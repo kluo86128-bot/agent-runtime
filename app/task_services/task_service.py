@@ -49,7 +49,7 @@ class TaskService:
                     task_id=task_id,
                     state=TaskState.pending.value,
                     step="queued",
-                    progress=0
+                    
                 )
         
                 return self._to_response(task)

@@ -44,7 +44,7 @@ class SimpleAgent:
                 task_id,
                 state="running",
                 step="summarize",
-                progress=60,
+                schema=60,
             )
             logger.info(f"Tool Calling:summarize")
             summary=self._summary(content)
@@ -73,7 +73,7 @@ class SimpleAgent:
                 task_id,
                 state="completed",
                 step="finnished",
-                progress=100
+                schema=100
             )
             return write_result
             

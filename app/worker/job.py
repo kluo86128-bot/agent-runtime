@@ -33,8 +33,8 @@ def execute_agent_task(task_id:str,instruction:str)->None:
         agent_state_manage_service.update_state(
             task_id=task_id,
             state=TaskState.runing.value,
-            step="worker_started",
-            progress=0
+            model_step=0,
+            max_steps=int(get_required_env("MAX_STEPS")),
         )
 
         result=function_call_agent.run(
@@ -51,12 +51,12 @@ def execute_agent_task(task_id:str,instruction:str)->None:
             task.state=result["state"]
             task.result=json.dumps(result,ensure_ascii=False)
             db.commit()
-        
         agent_state_manage_service.update_state(
             task_id=task_id,
-            state=result["state"],
-            step="finished",
-            progress=100
+            state=result.get("state"),
+            model_step=result.get("steps"),
+            max_steps=int(get_required_env("MAX_STEPS")),
+            reason=result.get("reason",None)
         )
         
     except Exception:
@@ -74,11 +74,15 @@ def execute_agent_task(task_id:str,instruction:str)->None:
                 task.state=TaskState.failed.value
                 task.result=error_trace
                 db.commit()
+            current_state = (
+                agent_state_manage_service.get_state(task_id) or {}
+            )
             agent_state_manage_service.update_state(
                 task_id=task_id,
                 state=TaskState.failed.value,
-                step="failed",
-                progress=100,
+                model_step=current_state.get("model_step"),
+                max_steps=current_state.get("max_steps"),
+                reason=traceback.format_exc(),
             )
             
             raise

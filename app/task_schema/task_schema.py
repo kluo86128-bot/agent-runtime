@@ -10,6 +10,11 @@ class TaskState(str,Enum):
     completed="completed"
     failed="failed"
     
+class AgentStep(str,Enum):
+    tool_calling="tool_calling"
+    model_request="model_request"
+    tool_execute="tool_execute"
+    
 class TaskCreateRequest(BaseModel):
     instruction:str=Field(...,description="The user instrucion for the agent.")
     
