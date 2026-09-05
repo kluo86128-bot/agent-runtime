@@ -1,7 +1,0 @@
-{
-  "instruction": "请一次性读取sample_data/loop_test/2025年销售报告.txt和sample_data/loop_test/2027年销售报告.txt中的内容，请对比两年营收变化。"
-}
-
-{
-  "instruction": "情读取sample_data/loop_test/start.txt中的内容，根据线索找到实验代号"
-}
