@@ -1,2 +1,7 @@
-AI Agent 是一种能够理解用户目标、规划任务、调用工具并返回结果的智能系统。
-在工程实现中，Agent 通常需要 Tool、Memory、Trace 和任务状态管理。
+{
+  "instruction": "请一次性读取sample_data/loop_test/2025年销售报告.txt和sample_data/loop_test/2027年销售报告.txt中的内容，请对比两年营收变化。"
+}
+
+{
+  "instruction": "情读取sample_data/loop_test/start.txt中的内容，根据线索找到实验代号"
+}

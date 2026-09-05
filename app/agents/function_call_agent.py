@@ -37,6 +37,10 @@ class FunctionCallAgent:
         ]
         
         for step in range(1,max_steps+1):
+            llm_request=None
+            message=None
+            tool_call_message=None
+            tool_results=[]
             try:
             
                 time.sleep(5)
@@ -89,23 +93,7 @@ class FunctionCallAgent:
                         }
                         for call in message.tool_calls
                     ]
-                }
-                time.sleep(5)                
-                if len(message.tool_calls)>1:
-                    agent_trace_manage_service.add_trace(
-                    task_id=task_id,
-                    model_step=step,
-                    llm_request=llm_request,
-                    llm_response=message.content,
-                    tool_call=tool_call_message,
-                    error_trace="当前版本支支持单次工具调用"
-                )
-                    logger.info(f"当前版本只支持单次工具调用")
-                    return {
-                        "state":TaskState.stopped.value,
-                        "reason":"每轮只支持一个工具调用",
-                        "steps":step,
-                    }  
+                }                
                     
                 agent_state_manage_service.update_state(
                     task_id=task_id,
@@ -114,48 +102,41 @@ class FunctionCallAgent:
                     tool_name=tool_call_message,
                     model_step=step,
                     max_steps=max_steps,
-                )                   
-                tool_call=message.tool_calls[0]
-                tool_name=tool_call.function.name
-                arguments=json.loads(
-                    tool_call.function.arguments
                 )
-                print("\n============Function Call==============")
-                print(f"tool_name:{tool_name}")
-                print(
-                    "arguments:",json.dumps(arguments,indent=2,ensure_ascii=False)
-                )
-                tool=self.tool_registry.get_tool(tool_name)
-                time.sleep(5)                
-                agent_state_manage_service.update_state(
-                    task_id=task_id,
-                    state=TaskState.runing.value,
-                    step=AgentStep.tool_execute.value,
-                    tool_name=tool_call_message,
-                    model_step=step,
-                    max_steps=max_steps,                )                
-                tool_result=tool.execute(**arguments)
-                if tool_result.success==False:
-                    agent_trace_manage_service.add_trace(
-                    task_id=task_id,
-                    model_step=step,
-                    llm_request=llm_request,
-                    llm_response=message.content,
-                    tool_call=tool_call_message,
-                    tool_result=tool_result.model_dump(),
-                    )
-                    raise RuntimeError(f"\nRuntimeError in {tool_name} calling:{tool_result.error}")
-
                 messages.append(message.model_dump(exclude_none=True))
-                
-                messages.append({
-                    "role":"tool",
-                    "tool_call_id":tool_call.id,
-                    "content":tool_result.model_dump_json()
-                })
+                for tool_call in message.tool_calls:
+                    tool_name=tool_call.function.name
+                    arguments=json.loads(
+                        tool_call.function.arguments
+                    )
+                    print("\n============Function Call==============")
+                    print(f"tool_name:{tool_name}")
+                    print(
+                        "arguments:",json.dumps(arguments,indent=2,ensure_ascii=False)
+                    )
+                    tool=self.tool_registry.get_tool(tool_name)
+                    time.sleep(5)                
+                    agent_state_manage_service.update_state(
+                        task_id=task_id,
+                        state=TaskState.runing.value,
+                        step=AgentStep.tool_execute.value,
+                        tool_name=tool_call_message,
+                        model_step=step,
+                        max_steps=max_steps,                )                
+                    tool_result=tool.execute(**arguments)
+                    tool_results.append(tool_result.model_dump())
+                    if tool_result.success==False:
+                        raise RuntimeError(f"\nRuntimeError in {tool_name} calling:{tool_result.error}")
+                    messages.append({
+                        "role":"tool",
+                        "tool_call_id":tool_call.id,
+                        "content":tool_result.model_dump_json()
+                        })
+
+                    
 
 
-                time.sleep(5)
+
                 if step == max_steps:
                     agent_trace_manage_service.add_trace(
                         task_id=task_id,
@@ -163,7 +144,7 @@ class FunctionCallAgent:
                         llm_request=llm_request,
                         llm_response=message.content,
                         tool_call=tool_call_message,
-                        tool_result=tool_result.model_dump(),
+                        tool_result=tool_results,
                         error_trace="模型轮数已达上限"
                     )
 
@@ -172,7 +153,7 @@ class FunctionCallAgent:
                         "state": TaskState.stopped.value,
                         "reason": "max_steps",
                         "steps": step,
-                        "last_tool_result": tool_result.model_dump(),
+                        "last_tool_results": tool_results,
                     }
                 
                 agent_trace_manage_service.add_trace(
@@ -181,13 +162,19 @@ class FunctionCallAgent:
                     llm_request=llm_request,
                     llm_response=message.content,
                     tool_call=tool_call_message,
-                    tool_result=tool_result.model_dump(),
+                    tool_result=tool_results,
                 )
                 
             except Exception as e:
                 agent_trace_manage_service.add_trace(
                     task_id=task_id,
                     model_step=step,
+                    llm_request=llm_request,
+                    llm_response=(
+                        message.content if message is not None else None
+                    ),
+                    tool_call=tool_call_message,
+                    tool_result=tool_results,
                     error_trace=traceback.format_exc()
                     
                 )
